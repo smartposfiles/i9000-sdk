@@ -1,0 +1,161 @@
+<resources>
+
+    <string name="app_name">FNLibrary</string>
+	<string-array name="registration_reasons">
+	    <item>Регистрация ККТ</item>
+	    <item>Замена ФН</item>
+	    <item>Замена ОФД</item>
+	    <item>Изменение реквизитов</item>
+	    <item>Изменение настроек ККТ</item>
+	</string-array>
+    <string-array name="tax_modes_p">
+        <item>ОСН</item>
+        <item>УСН доход</item>
+        <item>УСН доход - расход</item>
+        <item>ЕНВД</item>
+        <item>ЕСН</item>
+        <item>Патент</item>
+     </string-array>
+    <string-array name="agent_types_p">
+        <item>БАНК. ПЛ. АГЕНТ</item>
+        <item>БАНК. ПЛ. СУБАГЕНТ</item>
+        <item>ПЛ. АГЕНТ</item>
+        <item>ПЛ. СУБАГЕНТ</item>
+        <item>ПОВЕРЕННЫЙ</item>
+        <item>КОМИССИОНЕР</item>
+        <item>АГЕНТ</item>
+    </string-array>
+	<string-array name="ofd_proto_types">
+        <item >1.00</item>
+        <item >1.05</item>
+        <item >1.10</item>
+    </string-array>
+	<string-array name="vat_values">
+	    <item >НДС 18%</item>
+	    <item >НДС 10%</item>
+	    <item >НДС 18/118</item>
+	    <item >НДС 10/110</item>
+	    <item >НДС 0%</item>
+	    <item >НДС не облагается</item>
+	</string-array>
+	<string-array name="vat_values_n">
+	    <item >НДС 20%</item>
+	    <item >НДС 10%</item>
+	    <item >НДС 20/120</item>
+	    <item >НДС 10/110</item>
+	    <item >НДС 0%</item>
+	    <item >НДС не облагается</item>
+	    <item >НДС 18%</item>
+	    <item >НДС 18/118</item>
+	</string-array>
+		
+	<string-array name="item_types">
+	    <item >Товар</item>
+	    <item >Подакцизный товар</item>
+	    <item >Работа</item>
+	    <item >Услуга</item>
+	    <item >Ставка игры</item>
+	    <item >Выигрыш игры</item>
+	    <item >Лотерейный билет</item>
+	    <item >Выигрыш лотереи</item>
+	    <item >Предоставление РИД</item>
+	    <item >Платеж</item>
+	    <item >Агентское вознаграждение</item>
+	    <item >Составной предмет расчета</item>
+	    <item >Иной предмет расчета</item>
+	    <item >ИМУЩЕСТВЕННОЕ ПРАВО</item>
+	    <item >ВНЕРЕАЛИЗАЦИОННЫЙ ДОХОД</item>
+	    <item >СТРАХОВЫЕ ВЗНОСЫ</item>
+	    <item >ТОРГОВЫЙ СБОР</item>
+	    <item >КУРОРТНЫЙ СБОР</item>
+	    
+	</string-array>
+	<string-array name="pay_types">
+	    <item>Предоплата 100%</item>
+	    <item>Предоплата</item>
+	    <item>Аванс</item>
+	    <item>Полный расчет</item>
+	    <item>Частичный расчет и кредит</item>
+	    <item>Передача в кредит</item>
+	    <item>Оплата кредита</item>
+	</string-array>
+    <string-array name="payment_types">
+        <item >НАЛИЧНЫМИ</item>
+        <item >ЭЛЕКТРОННЫМИ</item>
+        <item >ПРЕДВАРИТЕЛЬНАЯ ОПЛАТА (АВАНС)</item>
+        <item >ПОСЛЕДУЮЩАЯ ОПЛАТА (КРЕДИТ)</item>
+        <item >ВСТРЕЧНАЯ</item>
+    </string-array>
+    <string-array name="payment_types_19">
+        <item >НАЛИЧНЫМИ</item>
+        <item >БЕЗНАЛИЧНЫМИ</item>
+        <item >ПРЕДВАРИТЕЛЬНАЯ ОПЛАТА (АВАНС)</item>
+        <item >ПОСЛЕДУЮЩАЯ ОПЛАТА (КРЕДИТ)</item>
+        <item >ВСТРЕЧНАЯ</item>
+    </string-array>
+    
+    <string-array name="c_type_check">
+        <item>Приход</item>
+        <item>Расход</item>
+    </string-array>
+    <string name="printer_error">Ошибка принтера</string>
+    <string name="cover_open">Проверьте состояние крышки/наличие бумаги</string>
+    <string name="overheat">Принтер перегрет</string>
+    <string name="low_voltage">Напряжение батареи слишком низкое</string>
+    <string name="repeat">Повторить</string>
+	<string-array name="ofd_names">
+	    <item>Произвольный ОФД</item>
+	    <item>Энергетические системы и коммуникации</item>
+	    <item>Такском</item>
+	    <item>Эвотор ОФД</item>
+	    <item>Ярус</item>
+	    <item>ПЕТЕР-СЕРВИС Спецтехнологии</item>
+	    <item>Яндекс.ОФД</item>
+	    <item>Электронный экспресс</item>
+	    <item>КАЛУГА АСТРАЛ</item>
+	    <item>Компания «Тензор»</item>
+	    <item>КОРУС Консалтинг СНГ</item>
+	    <item>Производственная фирма «СКБ Контур»</item>
+	    <item>АО «Тандер»</item>
+	    <item>Удостоверяющий центр «ИнитПро»</item>
+	    <item>ГРУППА ЭЛЕМЕНТ</item>
+	    <item> ООО «МультиКарта»</item>
+	</string-array>
+	<string-array name="ofd_inns">
+	    <item></item>
+	    <item>7709364346</item>
+	    <item>7704211201</item>
+	    <item>9715260691</item>
+	    <item>7728699517</item>
+	    <item>7841465198</item>
+	    <item>7704358518</item>
+	    <item>7729633131</item>
+	    <item>4029017981</item>
+	    <item>7605016030</item>
+	    <item>7801392271</item>
+	    <item>6663003127</item>
+	    <item>2310031475</item>
+	    <item>5902034504</item>
+	    <item>7729642175</item>
+	    <item>7710007966</item>
+	</string-array>
+	<string-array name="ofd_servers">
+	    <item></item>
+	    <item>k-server.1-ofd.ru:7777</item>
+	    <item>f1.taxcom.ru:7777</item>
+	    <item>ofdp.platformaofd.ru:21101</item>
+	    <item>connect.ofd-ya.ru:7779</item>
+	    <item>gate.ofd.ru:4000</item>
+	    <item>api-ofd.yandex.net:12345</item>
+	    <item>141.101.203.186:30801</item>
+	    <item>91.239.5.68:7777</item>
+	    <item>kkt.sbis.ru:7777</item>
+	    <item>92.38.2.202:7001</item>
+	    <item>ofd.kontur.ru:7777</item>
+	    <item></item>
+	    <item>kkt.ofd-initpro.ru:9999</item>
+	    <item>kkt.e-ofd.ru:7777</item>
+	    <item>ofd.multicarta.ru:21101</item>
+	</string-array>
+    
+</resources>
