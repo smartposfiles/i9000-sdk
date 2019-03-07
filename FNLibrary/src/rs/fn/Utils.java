@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.os.Parcel;
 import android.os.Parcelable;
-
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -39,18 +39,33 @@ public class Utils {
 	}
 	
 	/**
+	 * Размер шрифта по умолчанию в пикселях
+	 */
+	public static int FONT_SIZE = 20;
+	public static void setFontSize(int v) {
+		FONT_SIZE = v;
+		PAGE_WIDTH_CH = (int)(PAGE_WIDTH/(FONT_SIZE * 0.6));
+		FONT_SIZE_W = (int)(FONT_SIZE*0.6);
+	}
+	public static void setPageWidthCh(int v) {
+		PAGE_WIDTH_CH = v;
+	}
+	
+	public static void setUpcaseMode(boolean val) {
+		USE_UPCASE = val;
+	}
+	/**
 	 * Ширина устройства печати ККТ 9000 в символах
 	 */
 	public static final int PAGE_WIDTH = 384;
-	public static final int PAGE_WIDTH_CH = 32;
-	/**
-	 * Размер шрифта по умолчанию в пикселях
-	 */
-	public static final int FONT_SIZE = 20;
+	public static int FONT_SIZE_W = (int)(FONT_SIZE*0.6); 
+	public static int PAGE_WIDTH_CH = (int)(PAGE_WIDTH/FONT_SIZE_W);
+	public static boolean USE_UPCASE = false;
+	
 	/**
 	 * Размер шрифта по умолчанию в точках устройства печати
 	 */
-	public static final int FONT_SIZE_W = (int)(PAGE_WIDTH/(float)PAGE_WIDTH_CH);
+	
 	
 	@SuppressLint("SimpleDateFormat")
 	private static final SimpleDateFormat DF = new SimpleDateFormat("dd.MM.yyyy HH:mm");
@@ -58,7 +73,7 @@ public class Utils {
 	/**
 	 * Шрифт для печати по умолчанию
 	 */
-	public static final String FONT_NAME = "monospace";
+	public static String FONT_NAME = "monospace";
 	/**
 	 * Строка заполненная символом * по все ширине
 	 * @return сформированная строка
@@ -104,6 +119,9 @@ public class Utils {
 	}
 	
 	private static String align(String s, String s1, char lastLine) {
+		Log.d("ZZZ","FS "+FONT_SIZE);
+		Log.d("ZZZ","PW "+PAGE_WIDTH_CH);
+		
 		int maxColumnWidth = PAGE_WIDTH_CH/2;  
 		List<StringPair> columns = new ArrayList<>();
 		StringPair line = new StringPair(s, s1);
@@ -128,7 +146,9 @@ public class Utils {
 				} else 
 					next =  columns.get(i);
 				next.f = line.f.substring(maxColumnWidth);
+				while(next.f.startsWith(" ")) next.f = next.f.substring(1);
 				line.f = line.f.substring(0,maxColumnWidth);
+				while(line.f.startsWith(" ")) line.f = line.f.substring(1);
 			}
 			if(line.s.length() > maxColumnWidth) {
 				StringPair next;

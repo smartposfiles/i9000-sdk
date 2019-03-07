@@ -1,5 +1,7 @@
 package rs.fn;
 
+import android.graphics.Bitmap;
+
 /**
  * Интерфейс устройства печати
  * @author nick
@@ -52,6 +54,7 @@ public interface IPrintManager {
 	public int printQR(String value, int x, int y, int w, int h);
 	
 	public int printLinear(String value, int x, int y, String type);
+	public int printBitmap(Bitmap b, int x, int y);
 	/**
 	 * Завершить формирование страницы, напечатать ее 
 	 */

@@ -31,5 +31,9 @@ interface FiscalService {
 	int changeDeviceSerial(String number, String check);
 	int readKKMInfo(out KKMInfo info);
 	int printXReport();
+	void setDefaultFontSize(int size);
+	void setPageSize(int chars);
+	int getDefaultFontSize();
+	int getPageSize();
 	String getInternalVersion();
 }

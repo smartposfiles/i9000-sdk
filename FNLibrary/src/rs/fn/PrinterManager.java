@@ -13,6 +13,7 @@ public class PrinterManager implements IPrintManager {
 
 	private android.device.PrinterManager _printer;
 	private static PrinterManager _instance;
+	
 
 	public static PrinterManager getInstance() {
 		if (_instance == null)
@@ -20,6 +21,7 @@ public class PrinterManager implements IPrintManager {
 		return _instance;
 	}
 
+	
 	public PrinterManager() {
 		try {
 			_printer = new android.device.PrinterManager();
@@ -54,11 +56,12 @@ public class PrinterManager implements IPrintManager {
 
 	public int drawText(String line, int x, int y, String fontName, int fontSize, boolean bold, boolean italic) {
 		if(line == null || line.isEmpty()) return 0;
+		if(Utils.USE_UPCASE) line = line.toUpperCase();
 		try {
 			int height = 0;
 			for(String s : line.split("\n")) {
-				while(s.length() * (fontSize*0.6) > 384) {
-					int l =  (int)(384/(fontSize * 0.6));
+				while(s.length() > Utils.PAGE_WIDTH_CH) {
+					int l =  Utils.PAGE_WIDTH_CH;
 					height += _printer.drawText(s.substring(0,l), x, y+height, fontName, fontSize, bold, italic, 0);
 					s = s.substring(l);
 				} 
@@ -131,8 +134,8 @@ public class PrinterManager implements IPrintManager {
 	@Override
 	public int printLinear(String value, int x, int y, String type) {
 		BarcodeFormat bf = BarcodeFormat.EAN_13;
-		int h = (384-x)/3;
-		int w = 384-x;
+		int h = (Utils.PAGE_WIDTH_CH*Utils.FONT_SIZE_W -x)/3;
+		int w = Utils.PAGE_WIDTH_CH*Utils.FONT_SIZE_W-x;
 		if("EAN8".equals(type)) bf = BarcodeFormat.EAN_8;
 		if("CODE128".equals(type)) bf = BarcodeFormat.CODE_128;
 		if("CODE93".equals(type)) bf = BarcodeFormat.CODE_39;
@@ -140,12 +143,19 @@ public class PrinterManager implements IPrintManager {
 		if("UPCA".equals(type)) bf = BarcodeFormat.UPC_A;
 		if("QR".equals(type)) {
 			bf = BarcodeFormat.QR_CODE;
-			w = h = (384-x)/2;
+			w = h = (Utils.PAGE_WIDTH_CH*Utils.FONT_SIZE_W-x)/2;
 		}
 		Bitmap barcode = Utils.encodeAsBitmap(value, w,h ,bf);
 		_printer.drawBitmap(barcode, x, y);
 		barcode.recycle();
 		return h;
+	}
+
+
+	@Override
+	public int printBitmap(Bitmap b, int x, int y) {
+		_printer.drawBitmap(b, x, y);
+		return b.getHeight();
 	}
 
 }

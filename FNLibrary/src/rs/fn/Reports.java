@@ -1,9 +1,14 @@
 package rs.fn;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.google.zxing.BarcodeFormat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -11,7 +16,16 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Bitmap.Config;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.util.SparseArray;
@@ -449,7 +463,30 @@ public class Reports {
 	public static void printCheck(Context ctx, SellOrder c, IPrintManager pm, String footer) {
 		int oResult = pm.open();
 		if (oResult == 0) {
-			int y = pm.drawText(Utils.center(c.signature().ownerINN()), 0, 0, true);
+			/*			String fs = Utils.FONT_NAME;
+			
+			File f = new File(Environment.getExternalStorageDirectory(),"FNCore/f.ttf");
+			if(!f.exists()) try {
+				Log.d("PP", "Loading fonts");
+				InputStream is = ctx.getAssets().open("14603.ttf");
+				byte b [] = new byte[8192];
+				int read;
+				FileOutputStream fos = new FileOutputStream(f);
+				while((read = is.read(b)) > 0)
+					fos.write(b,0,read);
+				fos.close();
+				is.close();
+			} catch(Exception e) {
+				Log.d("PP", "Loading fonts fail",e);
+			}
+			if(f.exists()) {
+				Utils.FONT_NAME = f.getAbsolutePath();
+				Utils.setFontSize(22);
+			}
+			Bitmap dr = ((BitmapDrawable)ctx.getResources().getDrawable(R.drawable.d_l)).getBitmap();
+			int y = pm.printBitmap(dr, (384-dr.getWidth())/2, 0); */
+			int y = 0;
+			y += pm.drawText(Utils.center(c.signature().ownerINN()), 0, y, true);
 			y += pm.drawText(Utils.center(c.signature().ownerName()), 0, y, true);
 			y += pm.drawText(Utils.center(String.format("КАССОВЫЙ ЧЕК № %d", c.getNumber())), 0, y);
 			switch (c.getType()) {
@@ -655,7 +692,31 @@ public class Reports {
 					+ QR_DF1.format(new Date(c.signature().date())) + "&s=" + String.format("%.02f", c.sum()) + "&fn="
 					+ c.signature().FNSerial() + "&i=" + c.getNumber() + "&fp=" + c.signature().signature() + "&n="
 					+ c.getTaxMode();
-			y += pm.printQR(qr, 50, y, 260, 260);
+			int qrsize = (int)((Utils.FONT_SIZE_W*Utils.PAGE_WIDTH_CH) *0.8);
+/*			Bitmap b = Bitmap.createBitmap(qrsize*3,qrsize,Config.ARGB_8888);
+			Canvas cv = new Canvas(b);
+			cv.drawColor(Color.WHITE);
+			Bitmap pony = ((BitmapDrawable)ctx.getResources().getDrawable(R.drawable.p_l)).getBitmap();
+			Matrix m = new Matrix();
+			float scale = qrsize/(float)pony.getHeight();
+			m.postScale(scale, scale);
+			Paint P = new Paint(Paint.FILTER_BITMAP_FLAG);
+			cv.drawBitmap(pony, m, P);
+			pony.recycle();
+			Bitmap QR = Utils.encodeAsBitmap(qr, qrsize,qrsize, BarcodeFormat.QR_CODE);
+			m.reset();
+			m.postTranslate(qrsize, 0);
+			cv.drawBitmap(QR, m, P);
+			QR.recycle();
+			pony = ((BitmapDrawable)ctx.getResources().getDrawable(R.drawable.p_r)).getBitmap();
+			m.reset();
+			m.postScale(scale, scale);
+			m.postTranslate(qrsize*2, 0);
+			cv.drawBitmap(pony, m, P);
+			pony.recycle();
+			y += pm.printBitmap(b, 10, y);
+			b.recycle(); */
+			y += pm.printQR(qr, ((Utils.FONT_SIZE_W*Utils.PAGE_WIDTH_CH) - qrsize)/2, y, qrsize, qrsize);
 			y += pm.drawText(" ", 0, y);
 			printOFDReport(c.signature().OFDReply(), y, pm);
 			y += pm.drawText(" ", 0, y);
@@ -665,7 +726,8 @@ public class Reports {
 				y += pm.drawText(" ", 0, y);
 			pm.printPage();
 			pm.close();
-			oResult = pm.getState(); 
+			oResult = pm.getState();
+//			Utils.FONT_NAME = fs;
 			if( oResult == 0)
 				return;
 		}
