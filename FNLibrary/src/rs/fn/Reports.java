@@ -1,14 +1,10 @@
 package rs.fn;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.zxing.BarcodeFormat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -16,18 +12,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Bitmap.Config;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.WindowManager;
 import rs.fn.data.ArchiveReport;
@@ -181,7 +167,6 @@ public class Reports {
 			int reason = info.hasTag(1101) ? info.get(1101).asByte() : 0;
 			int y = pm.drawText(Utils.center(info.owner().getName()), 0, 0, true);
 			y += pm.drawText(Utils.center(info.owner().getINN()), 0, y, true);
-
 			if (reason == KKMInfo.REASON_REGISTER)
 				y += pm.drawText(Utils.center("ОТЧЕТ О РЕГИСТРАЦИИ"), 0, y);
 			else
@@ -196,7 +181,6 @@ public class Reports {
 			y += pm.drawText(info.getPayPlace(), 0, y);
 			if (info.casier().isSet())
 				y += pm.drawText(Utils.align("Кассир", info.casier().getName()), 0, y);
-
 			if (info.getTaxModes() != 0) {
 				y += pm.drawText("СНО:", 0, y);
 				val = ctx.getResources().getStringArray(R.array.tax_modes_p);
@@ -223,7 +207,6 @@ public class Reports {
 						y += pm.drawText(Utils.right(val[i]), 0, y);
 				y += pm.drawText(" ", 0, y);
 			}
-
 			y += pm.drawText(Utils.align("АВТОНОМ.РЕЖИМ", info.isOfflineMode() ? "Да" : "Нет"), 0, y);
 			y += pm.drawText(Utils.align("АС БСО", info.isBSOMode() ? "Да" : "Нет"), 0, y);
 			y += pm.drawText(Utils.align("ШФД", info.isEncryptionMode() ? "Да" : "Нет"), 0, y);
@@ -688,10 +671,24 @@ public class Reports {
 
 			y = printAgentInfo(c, pm, y, agents);
 			y += pm.drawText(" ", 0, y);
+			int ntype = 1;
+			switch(c.getType()) {
+				case SellOrder.TYPE_RETURN_INCOME:
+					ntype = 2;
+					break;
+				case SellOrder.TYPE_OUTCOME:
+					ntype = 3;
+					break;
+				case SellOrder.TYPE_RETURN_OUTCOME:
+					ntype = 4;
+					break;
+			}
+			int s = (int)(c.sum() * 100);
 			String qr = "t=" + QR_DF.format(new Date(c.signature().date())) + "T"
-					+ QR_DF1.format(new Date(c.signature().date())) + "&s=" + String.format("%.02f", c.sum()) + "&fn="
+					
+					+ QR_DF1.format(new Date(c.signature().date())) + "&s=" + String.format("%d.%02d", s/100,s % 100) + "&fn="
 					+ c.signature().FNSerial() + "&i=" + c.getNumber() + "&fp=" + c.signature().signature() + "&n="
-					+ c.getTaxMode();
+					+ ntype;
 			int qrsize = (int)((Utils.FONT_SIZE_W*Utils.PAGE_WIDTH_CH) *0.8);
 /*			Bitmap b = Bitmap.createBitmap(qrsize*3,qrsize,Config.ARGB_8888);
 			Canvas cv = new Canvas(b);
@@ -958,7 +955,6 @@ public class Reports {
 						paysplus[c.getInt(1)] += c.getFloat(2);
 					else
 						payminus[c.getInt(1)] += (c.getFloat(2) * -1f);
-					Log.d("FNCORE", "Doc " + dNo + " sum " + c.getFloat(2) + " type " + c.getInt(1));
 				} while (c.moveToNext());
 			}
 			c.close();
