@@ -10,7 +10,13 @@ import android.graphics.Bitmap;
  */
 public class PrinterManager implements IPrintManager {
 
+	private static long COUNTER = 0;
 
+	// Cчетчик пробега головки
+	public static long getCounter() { return COUNTER; }
+	// Сбросить счетчик пробега
+	public static void resetCounter() { COUNTER = 0; }
+	
 	private android.device.PrinterManager _printer;
 	private static PrinterManager _instance;
 	
@@ -68,7 +74,9 @@ public class PrinterManager implements IPrintManager {
 				if(!s.isEmpty())
 					height += _printer.drawText(s, x, y+height, fontName, fontSize, bold, italic, 0);
 			}
+			COUNTER += height;
 			return height;
+			
 		} catch (Exception e) {
 			return -1;
 		}
@@ -106,6 +114,7 @@ public class PrinterManager implements IPrintManager {
 		try {
 			try {
 				_printer.drawBitmap(barcode, x, y);
+				COUNTER+=h;
 			} catch (Exception e) {
 				return -1;
 			}
@@ -148,6 +157,7 @@ public class PrinterManager implements IPrintManager {
 		Bitmap barcode = Utils.encodeAsBitmap(value, w,h ,bf);
 		_printer.drawBitmap(barcode, x, y);
 		barcode.recycle();
+		COUNTER+=h;
 		return h;
 	}
 
@@ -155,6 +165,7 @@ public class PrinterManager implements IPrintManager {
 	@Override
 	public int printBitmap(Bitmap b, int x, int y) {
 		_printer.drawBitmap(b, x, y);
+		COUNTER+=b.getHeight();
 		return b.getHeight();
 	}
 

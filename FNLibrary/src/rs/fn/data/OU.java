@@ -41,7 +41,9 @@ public class OU implements Parcelable {
 	 * Рекевизиты заполнены?
 	 * @return
 	 */
-	public boolean isSet() { return !Const.EMPTY_INN.equals(_inn); }
+	public boolean isSet() { 
+		return !Const.EMPTY_INN.equals(_inn) || (_name != null  && !_name.isEmpty()); 
+	}
 	@Override
 	public int describeContents() {
 		return 0;

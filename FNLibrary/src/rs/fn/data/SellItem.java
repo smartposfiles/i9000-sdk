@@ -133,7 +133,7 @@ public class SellItem extends SparseArray<Tag> implements Parcelable {
 	}
 
 	public Tag pack() {
-		if(AGENT_TYPE != 0) 
+		if(AGENT_TYPE > 0) 
 			put(1222,new Tag(1222,(byte)AGENT_TYPE));
 		put(1214,new Tag(1214,(byte)PAY_TYPE));
 		put(1212,new Tag(1212,(byte)ITEM_TYPE));
@@ -144,9 +144,9 @@ public class SellItem extends SparseArray<Tag> implements Parcelable {
 			put(1199, new Tag(1199,(byte) (VAT_TYPE + 1)));
 		else {
 			if(VAT_TYPE == 6)
-				put(1199, new Tag(1199,1));
+				put(1199, new Tag(1199,(byte)1));
 			else
-				put(1199, new Tag(1199,3));
+				put(1199, new Tag(1199,(byte)3));
 		}
 		put(1043,new Tag(1043,PRICE*QTTY));
 		if (VAT_TYPE < 4)

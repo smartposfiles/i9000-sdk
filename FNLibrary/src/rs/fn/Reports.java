@@ -1,7 +1,5 @@
 package rs.fn;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +14,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.util.SparseArray;
 import android.view.WindowManager;
+import rs.fn.Const.DocTypes;
 import rs.fn.data.ArchiveReport;
 import rs.fn.data.Correction;
 import rs.fn.data.Document;
@@ -37,8 +36,6 @@ import rs.fnlibrary.R;
 @SuppressLint("SimpleDateFormat")
 public class Reports {
 
-	private static SimpleDateFormat QR_DF = new SimpleDateFormat("yyyyMMdd");
-	private static SimpleDateFormat QR_DF1 = new SimpleDateFormat("HHmm");
 	private static Pattern BARCODE = Pattern.compile("<barcode (.+)>(.+)</barcode>");
 
 	
@@ -493,7 +490,7 @@ public class Reports {
 			y += pm.drawText(Utils.align("СМЕНА №", String.valueOf(c.workDayNumber())), 0, y);
 			if (c.isAutoMode())
 				y += pm.drawText(Utils.align("Номер автомата", String.valueOf(c.automateNumber())), 0, y);
-			else if (!c.casier().isSet())
+			else if (c.casier().isSet())
 				y += pm.drawText(Utils.align("Кассир", c.casier().getName()), 0, y);
 
 			y += pm.drawText(" ", 0, y);
@@ -671,49 +668,9 @@ public class Reports {
 
 			y = printAgentInfo(c, pm, y, agents);
 			y += pm.drawText(" ", 0, y);
-			int ntype = 1;
-			switch(c.getType()) {
-				case SellOrder.TYPE_RETURN_INCOME:
-					ntype = 2;
-					break;
-				case SellOrder.TYPE_OUTCOME:
-					ntype = 3;
-					break;
-				case SellOrder.TYPE_RETURN_OUTCOME:
-					ntype = 4;
-					break;
-			}
-			int s = (int)(c.sum() * 100);
-			String qr = "t=" + QR_DF.format(new Date(c.signature().date())) + "T"
-					
-					+ QR_DF1.format(new Date(c.signature().date())) + "&s=" + String.format("%d.%02d", s/100,s % 100) + "&fn="
-					+ c.signature().FNSerial() + "&i=" + c.getNumber() + "&fp=" + c.signature().signature() + "&n="
-					+ ntype;
+			
 			int qrsize = (int)((Utils.FONT_SIZE_W*Utils.PAGE_WIDTH_CH) *0.8);
-/*			Bitmap b = Bitmap.createBitmap(qrsize*3,qrsize,Config.ARGB_8888);
-			Canvas cv = new Canvas(b);
-			cv.drawColor(Color.WHITE);
-			Bitmap pony = ((BitmapDrawable)ctx.getResources().getDrawable(R.drawable.p_l)).getBitmap();
-			Matrix m = new Matrix();
-			float scale = qrsize/(float)pony.getHeight();
-			m.postScale(scale, scale);
-			Paint P = new Paint(Paint.FILTER_BITMAP_FLAG);
-			cv.drawBitmap(pony, m, P);
-			pony.recycle();
-			Bitmap QR = Utils.encodeAsBitmap(qr, qrsize,qrsize, BarcodeFormat.QR_CODE);
-			m.reset();
-			m.postTranslate(qrsize, 0);
-			cv.drawBitmap(QR, m, P);
-			QR.recycle();
-			pony = ((BitmapDrawable)ctx.getResources().getDrawable(R.drawable.p_r)).getBitmap();
-			m.reset();
-			m.postScale(scale, scale);
-			m.postTranslate(qrsize*2, 0);
-			cv.drawBitmap(pony, m, P);
-			pony.recycle();
-			y += pm.printBitmap(b, 10, y);
-			b.recycle(); */
-			y += pm.printQR(qr, ((Utils.FONT_SIZE_W*Utils.PAGE_WIDTH_CH) - qrsize)/2, y, qrsize, qrsize);
+			y += pm.printBitmap(c.getQR(qrsize, qrsize), ((Utils.FONT_SIZE_W*Utils.PAGE_WIDTH_CH) - qrsize)/2, y);
 			y += pm.drawText(" ", 0, y);
 			printOFDReport(c.signature().OFDReply(), y, pm);
 			y += pm.drawText(" ", 0, y);
@@ -933,52 +890,72 @@ public class Reports {
 	public static void printXReport(Context context, KKMInfo info, IPrintManager pm) {
 		int oResult = pm.open(); 
 		if ( oResult == 0) {
-
-			Cursor c = context.getContentResolver().query(Uri.parse("content://rs.fncore.data/cashrests"), null, null,
+			
+			float [] p_summs = new float[] { 0,0,0,0};
+			int [] p_cnts = new int[] {0,0,0,0};
+			float [] c_summs = new float[] { 0,0,0,0};
+			int [] c_cnts = new int[] {0,0,0,0};
+			
+			float[] payments = new float[] { 0, 0, 0, 0, 0 };
+			
+			Cursor c = context.getContentResolver().query(Uri.parse("content://rs.fncore.data/documents"), null, null,
+					null, null);
+			if(c.moveToLast()) do {
+				if(c.getInt(1) == DocTypes.DOC_TYPE_OPENWD) break;
+				switch(c.getInt(1)) {
+				case DocTypes.DOC_TYPE_ORDER:
+					SellOrder order = Utils.unmarshall(c.getBlob(2),SellOrder.CREATOR);
+					float sign = 1.0f;
+					if(order.getType() == SellOrder.TYPE_OUTCOME || order.getType() == SellOrder.TYPE_RETURN_INCOME)
+						sign = -1.0f;
+					p_summs[order.getType()] += order.sum();
+					p_cnts[order.getType()]++;
+					for(Payment p : order.payments()) 
+						payments[p.TYPE] += (p.SUM * sign);
+					
+					break;
+				case DocTypes.DOC_TYPE_CORRECTION:
+					Correction cr = Utils.unmarshall(c.getBlob(2),Correction.CREATOR);
+					c_summs[cr.type()] += cr.getSum();
+					c_cnts[cr.type()]++;
+					sign = 1.0f;
+					if(cr.type() == SellOrder.TYPE_OUTCOME || cr.type() == SellOrder.TYPE_RETURN_INCOME)
+						sign = -1.0f;
+					for(Payment p : cr.payments())
+						payments[p.TYPE] += (p.SUM * sign);
+					break;
+				}
+			} while(c.moveToPrevious());
+			c.close();
+			c = context.getContentResolver().query(Uri.parse("content://rs.fncore.data/cashrests"), null, null,
 					null, null);
 			float rest = 0;
 			if (c.moveToFirst())
 				rest = c.getFloat(0);
 			c.close();
-			c = context.getContentResolver().query(Uri.parse("content://rs.fncore.data/rests"), null, null, null, null);
-			int nChecks = 0, dNo = 0;
-			float[] paysplus = new float[] { 0, 0, 0, 0, 0 };
-			float[] payminus = new float[] { 0, 0, 0, 0, 0 };
-			if (c.moveToFirst()) {
-				do {
-
-					if (c.getInt(0) != dNo) {
-						nChecks++;
-						dNo = c.getInt(0);
-					}
-					if (c.getFloat(2) > 0)
-						paysplus[c.getInt(1)] += c.getFloat(2);
-					else
-						payminus[c.getInt(1)] += (c.getFloat(2) * -1f);
-				} while (c.moveToNext());
-			}
-			c.close();
 			int y = pm.drawText(Utils.align("ККТ", info.getRegistrationNo()), 0, 0);
 			y += pm.drawText(Utils.right(info.owner().getName()), 0, y);
 			y += pm.drawText(Utils.right(info.owner().getINN()), 0, y);
-			y += pm.drawText(Utils.center("СМЕННЫЙ X-ОТЧЕТ"), 0, y);
 			y += pm.drawText(Utils.align("СМЕНА №", String.valueOf(info.workDayNumber())), 0, y);
 			if (info.isWorkDayOpen())
 				y += pm.drawText(Utils.right("ОТКРЫТА"), 0, y);
 			else
 				y += pm.drawText(Utils.right("ЗАКРЫТА"), 0, y);
-			y += pm.drawText(Utils.right(Utils.formateDate(System.currentTimeMillis())), 0, y);
-			y += pm.drawText(Utils.alignDot("ЧЕКОВ ПРОДАЖ", String.valueOf(nChecks)), 0, y);
-			y += pm.drawText(Utils.alignDot("НАЛИЧНЫМИ", String.format("%.2f", paysplus[0] - payminus[0])), 0, y);
-			y += pm.drawText(Utils.alignDot("ЭЛЕКТРОННЫМИ", String.format("%.2f", paysplus[1] - payminus[1])), 0, y);
-			y += pm.drawText(Utils.alignDot("ПРЕДОПЛАТА", String.format("%.2f", paysplus[2] - payminus[2])), 0, y);
-			y += pm.drawText(Utils.alignDot("КРЕДИТ", String.format("%.2f", paysplus[3] - payminus[3])), 0, y);
-			y += pm.drawText(Utils.alignDot("ВСТРЕЧНАЯ", String.format("%.2f", paysplus[4] - payminus[4])), 0, y);
-			float total = 0;
-			for (int i = 0; i < paysplus.length; i++)
-				total += paysplus[i] - payminus[i];
-			y += pm.drawText(Utils.alignDot("СМЕННЫЙ ИТОГ", String.format("%.2f", total)), 0, y);
-			y += pm.drawText(Utils.alignDot("ОСТАТОК В КАССЕ", String.format("%.2f", rest)), 0, y);
+			y += pm.drawText(Utils.center("ИТОГОВЫЕ СУММЫ"), 0, y,true);
+			y += pm.drawText(Utils.alignDot(String.format("%05d ПРИХОД",p_cnts[0]), String.format("%.2f",p_summs[0])), 0, y);
+			y += pm.drawText(Utils.alignDot(String.format("%05d ВОЗВРАТ ПРИХОДА",p_cnts[1]), String.format("%.2f",p_summs[1])), 0, y);
+			y += pm.drawText(Utils.alignDot(String.format("%05d РАСХОД",p_cnts[2]), String.format("%.2f",p_summs[2])), 0, y);
+			y += pm.drawText(Utils.alignDot(String.format("%05d ВОЗВРАТ РАСХОДА",p_cnts[3]), String.format("%.2f",p_summs[3])), 0, y);
+			y += pm.drawText(Utils.center("КОРРЕКЦИИ"), 0, y,true);
+			y += pm.drawText(Utils.alignDot(String.format("%05d ПРИХОД",c_cnts[0]), String.format("%.2f",c_summs[0])), 0, y);
+			y += pm.drawText(Utils.alignDot(String.format("%05d ВОЗВРАТ ПРИХОДА",c_cnts[1]), String.format("%.2f",c_summs[1])), 0, y);
+			y += pm.drawText(Utils.alignDot(String.format("%05d РАСХОД",c_cnts[2]), String.format("%.2f",c_summs[2])), 0, y);
+			y += pm.drawText(Utils.alignDot(String.format("%05d ВОЗВРАТ РАСХОДА",c_cnts[3]), String.format("%.2f",c_summs[3])), 0, y);
+			y += pm.drawText(Utils.center("ПРОДАЖА"), 0, y,true);
+			y += pm.drawText(Utils.alignDot("НАЛИЧНЫМИ", String.format("%.2f", payments[0])), 0, y);
+			y += pm.drawText(Utils.alignDot("ЭЛЕКТРОННЫМИ", String.format("%.2f", payments[1])), 0, y);
+			y += pm.drawText(Utils.center("ОСТАТОК В КАССЕ"), 0, y,true);
+			y += pm.drawText(Utils.alignDot("НАЛИЧНЫЕ", String.format("%.2f", rest)), 0, y);
 			for (int i = 0; i < 10; i++)
 				y += pm.drawText(" ", 0, y);
 			pm.printPage();

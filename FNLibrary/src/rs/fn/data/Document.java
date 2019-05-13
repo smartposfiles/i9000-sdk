@@ -20,6 +20,7 @@ import rs.fn.Const;
 public class Document extends SparseArray<Tag> implements Parcelable {
 
 
+	private boolean _delayed = false;
 	protected Signature SIGNATURE = new Signature();
 	
 	public Document() {
@@ -80,12 +81,14 @@ public class Document extends SparseArray<Tag> implements Parcelable {
 	
 	
 	public void readFromParcel(Parcel in) {
+		_delayed = in.readInt() == 1;
 		Tag.readCollection(this, in);
 		SIGNATURE.readFromParcel(in);
 	}
 
 	@Override
 	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeInt(_delayed ? 1 : 0);
 		Tag.writeCollection(this, dest, flags);
 		SIGNATURE.writeToParcel(dest);
 	}
@@ -205,5 +208,25 @@ public class Document extends SparseArray<Tag> implements Parcelable {
 	 * @return
 	 */
 	public boolean hasTag(int key) { return get(key) != null; }
+	
+	protected void setDelayed(boolean val) {
+		_delayed = val;
+	}
+	public boolean isDelayed() { return _delayed; }
+
+	public static final Parcelable.Creator<Document> CREATOR = new Parcelable.Creator<Document>() {
+
+		@Override
+		public Document createFromParcel(Parcel in) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public Document[] newArray(int size) {
+			return new Document[size];
+		}
+		
+	};
 
 }

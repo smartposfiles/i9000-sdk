@@ -35,5 +35,12 @@ interface FiscalService {
 	void setPageSize(int chars);
 	int getDefaultFontSize();
 	int getPageSize();
+	int finalizeSellOrder(in SellOrder order, out SellOrder signed);
+	
+	int openTransaction();
+	int writeData(int transaction, in byte [] data);
+	int readData(int transaction, out byte [] data);
+	void closeTransaction(int transaction); 
+
 	String getInternalVersion();
 }
