@@ -440,31 +440,239 @@ public class Reports {
 	 * @param c   чек
 	 * @param pm  устройство печати
 	 */
+	private static volatile boolean headerDone = true;
+	public static void printCheckHeader(Context ctx, SellOrder c, IPrintManager pm) {
+		int oResult = pm.open();
+		if (oResult == 0) {
+			headerDone = false;
+			int y = 0;
+			y += pm.drawText(Utils.center(c.signature().ownerINN()), 0, y, true);
+			y += pm.drawText(Utils.center(c.signature().ownerName()), 0, y, true);
+			switch (c.getType()) {
+			case SellOrder.TYPE_INCOME:
+				y += pm.drawText(Utils.center("ПРИХОД"), 0, y, true);
+				break;
+			case SellOrder.TYPE_RETURN_INCOME:
+				y += pm.drawText(Utils.center("ВОЗВРАТ ПРИХОДА"), 0, y, true);
+				break;
+			case SellOrder.TYPE_OUTCOME:
+				y += pm.drawText(Utils.center("РАСХОД"), 0, y, true);
+				break;
+			case SellOrder.TYPE_RETURN_OUTCOME:
+				y += pm.drawText(Utils.center("ВОЗВРАТ РАСХОДА"), 0, y, true);
+				break;
+			}
+			y += pm.drawText(c.getPayAddress(), 0, y);
+			y += pm.drawText("МЕСТО РАСЧЕТОВ", 0, y);
+			y += pm.drawText(c.getPayPlace(), 0, y);
+			y += pm.drawText(Utils.right(Utils.formateDate(c.signature().date())), 0, y);
+			y += pm.drawText(Utils.align("СМЕНА №", String.valueOf(c.workDayNumber())), 0, y);
+			if (c.isAutoMode())
+				y += pm.drawText(Utils.align("Номер автомата", String.valueOf(c.automateNumber())), 0, y);
+			else if (c.casier().isSet())
+				y += pm.drawText(Utils.align("Кассир", c.casier().getName()), 0, y);
+
+			y += pm.drawText(" ", 0, y);
+
+			String[] ndsv; 
+			if(System.currentTimeMillis() > 1546300800000L)
+				ndsv = ctx.getResources().getStringArray(R.array.vat_values_n);
+			else
+				ndsv = ctx.getResources().getStringArray(R.array.vat_values);
+			String[] gtype = ctx.getResources().getStringArray(R.array.item_types);
+			String[] agents = ctx.getResources().getStringArray(R.array.agent_types_p);
+			String[] pay_types = ctx.getResources().getStringArray(R.array.pay_types);
+			float[] snds = { 0, 0, 0, 0, 0, 0, 0, 0 };
+			for (int i = 0; i < c.items().size(); i++) {
+				SellItem e = c.items().get(i);
+				String name = e.NAME;
+				if(e.ITEM_TYPE == 15 || e.ITEM_TYPE == 16) {
+					if("1".equals(e.NAME)) name = "Доход от долевого участия в других организациях";
+					if("2".equals(e.NAME)) name = "Доход в виде курсовой разницы, образующейся вследствие отклонения курса продажи (покупки) иностранной валюты от официального курса";
+					if("3".equals(e.NAME)) name = "Доход в виде подлежащих уплате должником штрафов, пеней и (или) иных санкций за нарушение договорных обязательств";
+					if("4".equals(e.NAME)) name = "Доход от сдачи имущества (включая земельные участки) в аренду (субаренду)";
+					if("5".equals(e.NAME)) name = "Доход от предоставления в пользование прав на результаты интеллектуальной деятельности";
+					if("6".equals(e.NAME)) name = "Доход в виде процентов, полученных по договорам займа и другим долговым обязательствам";
+					if("7".equals(e.NAME)) name = "Доход в виде сумм восстановленных резервов";
+					if("8".equals(e.NAME)) name = "Доход в виде безвозмездно полученного имущества (работ, услуг) или имущественных прав";
+					if("9".equals(e.NAME)) name = "Доход в виде дохода, распределяемого в пользу налогоплательщика при его участии в простом товариществе";
+					if("10".equals(e.NAME)) name = "Доход в виде дохода прошлых лет, выявленного в отчетном (налоговом) периоде";
+					if("11".equals(e.NAME)) name = "Доход в виде положительной курсовой разницы";
+					if("12".equals(e.NAME)) name = "Доход в виде основных средств и нематериальных активов, безвозмездно полученных атомными станциями";
+					if("13".equals(e.NAME)) name = "Доход в виде стоимости полученных материалов при ликвидации выводимых из эксплуатации основных средств";
+					if("14".equals(e.NAME)) name = "Доход в виде использованных не по целевому назначению имущества, работ, услуг";
+					if("15".equals(e.NAME)) name = "Доход в виде использованных не по целевому назначению средств, предназначенных для формирования резервов по обеспечению безопасности производств";
+					if("16".equals(e.NAME)) name = "Доход в виде сумм, на которые уменьшен уставной (складочный) капитал (фонд) организации";
+					if("17".equals(e.NAME)) name = "Доход в виде сумм возврата от некоммерческой организации ранее уплаченных взносов (вкладов)";
+					if("18".equals(e.NAME)) name = "Доход в виде сумм кредиторской задолженности, списанной в связи с истечением срока исковой давности или по другим основаниям";
+					if("19".equals(e.NAME)) name = "Доход в виде доходов, полученных от операций с производными финансовыми инструментами";
+					if("20".equals(e.NAME)) name = "Доход в виде стоимости излишков материально-производственных запасов и прочего имущества, которые выявлены в результате инвентаризации";
+					if("21".equals(e.NAME)) name = "Доход в виде стоимости продукции СМИ и книжной продукции, подлежащей замене при возврате либо при списании";
+					if("22".equals(e.NAME)) name = "Доход в виде сумм корректировки прибыли налогоплательщика";
+					if("23".equals(e.NAME)) name = "Доход в виде возвращенного денежного эквивалента недвижимого имущества и (или) ценных бумаг, переданных на пополнение целевого капитала некоммерческой организации";
+					if("24".equals(e.NAME)) name = "Доход в виде разницы между суммой налоговых вычетов из сумм акциза и указанных сумм акциза";
+					if("25".equals(e.NAME)) name = "Доход в виде прибыли контролируемой иностранной компании";
+					if("26".equals(e.NAME)) name = "Взносы на ОПС";
+					if("27".equals(e.NAME)) name = "Взносы на ОСС в связи с нетрудоспособностью";
+					if("28".equals(e.NAME)) name = "Взносы на ОМС";
+					if("29".equals(e.NAME)) name = "Взносы на ОСС от несчастных случаев";
+					if("30".equals(e.NAME)) name = "Пособия по временной нетрудоспособности";  
+					if("31".equals(e.NAME)) name = "Платежи по добровольному личному страхованию";
+				}
+				
+				y += pm.drawText(name, 0, y, true);
+				y += pm.drawText(Utils.right(String.format("%.03f X %.02f", e.QTTY, e.PRICE)), 0, y);
+				y += pm.drawText(Utils.align("Сумма", String.format("=%.02f", e.sum())), 0, y);
+				int vType = e.VAT_TYPE;
+				if(System.currentTimeMillis() > 1546300800000L) 
+					switch(e.VAT_TYPE) {
+					case SellItem.VAT_TYPE_18:
+						if(snds[SellItem.VAT_TYPE_20] > 0) {
+							snds[SellItem.VAT_TYPE_20] += e.vatValue();
+							vType = SellItem.VAT_TYPE_20;
+						}
+						else
+							snds[SellItem.VAT_TYPE_18] += e.vatValue();
+						break;
+					case SellItem.VAT_TYPE_18_118:
+						if(snds[SellItem.VAT_TYPE_20_120] > 0) {
+							snds[SellItem.VAT_TYPE_20_120] += e.vatValue();
+							vType = SellItem.VAT_TYPE_20_120;
+						}
+						else
+							snds[SellItem.VAT_TYPE_18_118] += e.vatValue();
+						break;
+					case SellItem.VAT_TYPE_20:
+						if(snds[SellItem.VAT_TYPE_18] > 0) {
+							snds[SellItem.VAT_TYPE_18] += e.vatValue();
+							vType = SellItem.VAT_TYPE_18;
+						}
+						else
+							snds[SellItem.VAT_TYPE_20] += e.vatValue();
+						break;
+					case SellItem.VAT_TYPE_20_120:
+						if(snds[SellItem.VAT_TYPE_18_118] > 0) {
+							snds[SellItem.VAT_TYPE_18_118] += e.vatValue();
+							vType = SellItem.VAT_TYPE_18_118;
+						}
+						else
+							snds[SellItem.VAT_TYPE_20_120] += e.vatValue();
+						break;
+					default:
+						snds[e.VAT_TYPE] += e.vatValue();
+					}
+				else 
+					snds[e.VAT_TYPE] += e.vatValue();
+				y += pm.drawText(Utils.align(String.format("%s", ndsv[vType]),
+						String.format("=%.02f", e.vatValue())), 0, y);
+				
+				// y += pm.drawText("Признак способа расчета",0,y);
+				y += pm.drawText(Utils.right(pay_types[e.PAY_TYPE - 1]), 0, y);
+				y += pm.drawText(Utils.right(gtype[e.ITEM_TYPE - 1]), 0, y);
+				if (e.AGENT_TYPE != 0) {
+					for (int k = 0; k < e.AGENT_TYPE; k++) {
+						int mask = (1 << k);
+						if ((e.AGENT_TYPE & mask) == mask) {
+							y += pm.drawText(Utils.right(agents[k]), 0, y);
+							break;
+						}
+					}
+				}
+				Tag t = e.get(1223);
+				if (t != null) {
+					SparseArray<Tag> sTags = t.asSTLV();
+					y = printAgentInfo(sTags, pm, y, agents);
+				}
+				t = e.get(1224);
+				if (t != null) {
+					SparseArray<Tag> sTags = t.asSTLV();
+					y = printAgentInfo(sTags, pm, y, agents);
+				}
+				y += pm.drawText(" ",0,y);
+			}
+			y += pm.drawText(" ", 0, y);
+			y += pm.drawText(Utils.alignDot("ИТОГ", String.format("= %.02f", c.sum())), 0, y, true);
+			y += pm.drawText(" ", 0, y);
+			String[] ss = System.currentTimeMillis() > 1546300800000L ? ctx.getResources().getStringArray(R.array.payment_types_19) : ctx.getResources().getStringArray(R.array.payment_types);
+			for (Payment p1 : c.payments())
+				y += pm.drawText(Utils.align(ss[p1.TYPE], String.format("= %.02f", p1.SUM)), 0, y);
+			ss = ctx.getResources().getStringArray(R.array.tax_modes_p);
+			if (snds[1] > 0)
+				y += pm.drawText(Utils.align("СУММА НДС 10%", String.format("= %.02f", snds[1])), 0, y);
+			if (snds[0] > 0) {
+				if(System.currentTimeMillis() > 1546300800000L)
+					y += pm.drawText(Utils.align("СУММА НДС 20%", String.format("= %.02f", snds[0])), 0, y);
+				else
+					y += pm.drawText(Utils.align("СУММА НДС 18%", String.format("= %.02f", snds[0])), 0, y);
+			}
+			if (snds[3] > 0)
+				y += pm.drawText(Utils.align("СУММА НДС 10/110", String.format("= %.02f", snds[3])), 0, y);
+			if (snds[2] > 0) {
+				if(System.currentTimeMillis() > 1546300800000L)
+					y += pm.drawText(Utils.align("СУММА НДС 20/120", String.format("= %.02f", snds[2])), 0, y);
+				else
+					y += pm.drawText(Utils.align("СУММА НДС 18/118", String.format("= %.02f", snds[2])), 0, y);
+			}
+			if (snds[4] > 0)
+				y += pm.drawText(Utils.align("СУММА C НДС 0%", String.format("= %.02f", snds[4])), 0, y);
+			if (snds[5] > 0)
+				y += pm.drawText(Utils.align("СУММА БЕЗ НДС", String.format("= %.02f", snds[5])), 0, y);
+			if (snds[6] > 0 && snds[2] < 0.01f && snds[0] < 0.01f )
+				y += pm.drawText(Utils.align("СУММА НДС 18%", String.format("= %.02f", snds[6])), 0, y);
+			if (snds[7] > 0 && snds[2] < 0.01f  && snds[0] < 0.01f )
+				y += pm.drawText(Utils.align("СУММА НДС 18/118", String.format("= %.02f", snds[6])), 0, y);
+
+			if (c.getRefund() >= 0.01)
+				y += pm.drawText(Utils.align("СДАЧА", String.format("= %.02f", c.getRefund())), 0, y);
+			Tag t = c.get(1008);
+			if (t != null) {
+				if (t.asString().contains("@")) {
+					y += pm.drawText("ЭЛ.АДРЕС.ОТПРАВИТЕЛЯ:", 0, y);
+					y += pm.drawText(c.getSenderEmail(), 0, y);
+					y += pm.drawText("ЭЛ.АДР.ПОКУПАТЕЛЯ", 0, y);
+				} else
+					y += pm.drawText("ТЕЛ. ПОКУПАТЕЛЯ", 0, y);
+				y += pm.drawText(t.asString(), 0, y);
+			}
+			y += pm.drawText(" ", 0, y);
+			y += pm.drawText(Utils.align("СНО", ss[c.getTaxMode()]), 0, y);
+			if(c.hasTag(1192)) 
+				y += pm.drawText(Utils.align("ДОП. РЕКВИЗИТ", c.get(1192).asString()), 0, y);
+			y = printAgentInfo(c, pm, y, agents);
+			y += pm.drawText(" ", 0, y);
+			y += pm.drawText(Utils.align("РН ККТ", c.signature().KKTNumber()), 0, y);
+			y += pm.drawText(Utils.align("ФН №", c.signature().FNSerial()), 0, y);
+			pm.printPage();
+			pm.close();
+			headerDone = true;
+		}
+	}
+	public static void printCheckFooter(SellOrder c, IPrintManager pm, String footer) {
+		while(!headerDone) try { Thread.sleep(100); } catch(InterruptedException ie) { return; }
+		if(pm.open() == 0) {
+			int y = pm.drawText(Utils.align("КАССОВЫЙ ЧЕК №", String.valueOf(c.getNumber())), 0, 0);
+			y += pm.drawText(Utils.align("ФД №", String.valueOf(c.signature().number())), 0, y);
+			y += pm.drawText(Utils.align("ФПД", String.format("%d", c.signature().signature())), 0, y);
+			y += pm.drawText("САЙТ ФНС", 0, y);
+			y += pm.drawText(c.fnsUrl(), 0, y);
+			y += pm.drawText(" ", 0, y);
+			int qrsize = (int)((Utils.FONT_SIZE_W*Utils.PAGE_WIDTH_CH) *0.8);
+			y += pm.printBitmap(c.getQR(qrsize, qrsize), ((Utils.FONT_SIZE_W*Utils.PAGE_WIDTH_CH) - qrsize)/2, y);
+			y += pm.drawText(" ", 0, y);
+			printOFDReport(c.signature().OFDReply(), y, pm);
+			y += pm.drawText(" ", 0, y);
+			if (footer != null)
+				y = printText(footer, pm,y);
+			for(int i=0;i<10;i++)
+				y += pm.drawText(" ", 0, y);
+			pm.printPage();
+			pm.close();
+		}
+	}
+	
 	public static void printCheck(Context ctx, SellOrder c, IPrintManager pm, String footer) {
 		int oResult = pm.open();
 		if (oResult == 0) {
-			/*			String fs = Utils.FONT_NAME;
-			
-			File f = new File(Environment.getExternalStorageDirectory(),"FNCore/f.ttf");
-			if(!f.exists()) try {
-				Log.d("PP", "Loading fonts");
-				InputStream is = ctx.getAssets().open("14603.ttf");
-				byte b [] = new byte[8192];
-				int read;
-				FileOutputStream fos = new FileOutputStream(f);
-				while((read = is.read(b)) > 0)
-					fos.write(b,0,read);
-				fos.close();
-				is.close();
-			} catch(Exception e) {
-				Log.d("PP", "Loading fonts fail",e);
-			}
-			if(f.exists()) {
-				Utils.FONT_NAME = f.getAbsolutePath();
-				Utils.setFontSize(22);
-			}
-			Bitmap dr = ((BitmapDrawable)ctx.getResources().getDrawable(R.drawable.d_l)).getBitmap();
-			int y = pm.printBitmap(dr, (384-dr.getWidth())/2, 0); */
 			int y = 0;
 			y += pm.drawText(Utils.center(c.signature().ownerINN()), 0, y, true);
 			y += pm.drawText(Utils.center(c.signature().ownerName()), 0, y, true);
@@ -953,7 +1161,7 @@ public class Reports {
 			y += pm.drawText(Utils.alignDot(String.format("%05d ВОЗВРАТ РАСХОДА",c_cnts[3]), String.format("%.2f",c_summs[3])), 0, y);
 			y += pm.drawText(Utils.center("ПРОДАЖА"), 0, y,true);
 			y += pm.drawText(Utils.alignDot("НАЛИЧНЫМИ", String.format("%.2f", payments[0])), 0, y);
-			y += pm.drawText(Utils.alignDot("ЭЛЕКТРОННЫМИ", String.format("%.2f", payments[1])), 0, y);
+			y += pm.drawText(Utils.alignDot("БЕЗНАЛИЧНЫМИ", String.format("%.2f", payments[1])), 0, y);
 			y += pm.drawText(Utils.center("ОСТАТОК В КАССЕ"), 0, y,true);
 			y += pm.drawText(Utils.alignDot("НАЛИЧНЫЕ", String.format("%.2f", rest)), 0, y);
 			for (int i = 0; i < 10; i++)
